@@ -8,7 +8,7 @@ int main(){
 	//create a random bytes between 2048 and 20480
 	//Using Srand to change the seed so the same random number isnt used each run
 	srand(time(NULL));
-	int r = rand() % 20480 + 2018;
+	int r = rand() % 20480 + 2048;
 	int datastart = rand() % 45055; //65535 -20480
 
 
@@ -16,8 +16,8 @@ int main(){
 	//create array to allocate block of memory
 	int space = 65536;
 	char initialise = 48;//48 = 0 in Ascii table
-  char *allocatemem; 
-	allocatemem = malloc(space * sizeof(char));
+  unsigned char *allocatemem; 
+	allocatemem = malloc(space);
 
 	for(int i = 0; i < space; i++)
 	{
@@ -38,27 +38,26 @@ int main(){
 		datastart++;
 	}
 
-	//Page table needs 256 pages w/2frames per page i.e 512 frames
-	//Implement via 2D array Rows = Pages columns =  frame. eg. Page 5 frame 10 (to get it 5 * 2)
-	// Frame 11 would be (5 * 2) + 1. Basically (page num * 2) ([+1] if frame is odd num)
+	//Page table needs 256 pages
+	//Implement via 2D array Rows = Pages, columns =  frame.
 	int pagetable[256][2];
+	int pagenum = 0;
 
-	//initialise page table
+	int firstframe = datastart / 256;
+	int lastframe = (r + datastart) / 256;
+
+	//initialise the page table, 256 rows
 	for(int i = 0; i < 256; i++)
 	{
-		for(int x = 0; x < 2; x++)
-		{
-			if(x == 0)
-			{
-				pagetable[i][x] = i * 2;
-			}
-			else
-			{
-				pagetable[i][x] = (i * 2) +1;
-			}
-		}
+		pagetable[i][0] = i;
+		pagetable[i][1] = 0;
 	}
 
+	for(int j = firstframe; j < lastframe; j++)
+	{
+		pagetable[pagenum][1] = j;
+		pagenum++;
+	}
 	//Similar to above but for bytes in frames. 512 frames, 128 bytes per frame, 65536 bytes total.
 	/*int physicalmem[512][128];
 	int bytenum = 0;
@@ -88,23 +87,31 @@ int main(){
 
 	 for(int i = 0; i < space; i++)
 	 {
-	 		if(i % 127 == 0 && i != 0)
+	 		if(i % 256 == 0 && i != 0)
 	 		{
 	 			framenum++;
 	 		}
 			if(allocatemem[i] == 49)
 			{
-			fprintf(file, "0x%X  \t| \t   %d    \t|  %d 	\t| process running\n", i, framenum, allocatemem[i]);
+			fprintf(file, "0x%X  \t| \t   %d    \t|  %c 	\t| process running\n", i, framenum, allocatemem[i]);
 			}
 			else
 			{
-			fprintf(file, "0x%X  \t| \t		%d		\t|  %d	\n", i, framenum, allocatemem[i]);
+			fprintf(file, "0x%X  \t| \t		%d		\t|  %c	\n", i, framenum, allocatemem[i]);
 			}
 	 }
 
+	 FILE *pagefile = fopen("./pagetable.txt", "w");
 
-	//printf("The random number generated was: %d and: %d\n", r, datastart);
-  //printf("%s\n", allocatemem);
+	fprintf(pagefile, "Page Number\t  |\t  Frame\n");
+  fprintf(pagefile, "-------- \t		|\t -------- \n");
+  for(int i = 0; i < 256; i++)
+  {
+			fprintf(pagefile, "		%d		\t	|\t		%d		\n", pagetable[i][0], pagetable[i][1]);
+  }
+	 
+	printf("The random number generated was: %d and: %d\n", r, datastart);
+  //printf("%c \n",  allocatemem[5]);
 	//printf("memory allocated: %zu\n ", sizeof(&allocatemem));
 	/*for(int i = 0; i < 512; i++)
 	{
@@ -117,5 +124,6 @@ int main(){
 	}*/
 	free(allocatemem);
 	fclose(file);
+	fclose(pagefile);
 	return 0;
 }
