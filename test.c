@@ -59,19 +59,63 @@ int main(){
 		}
 	}
 
+	//Similar to above but for bytes in frames. 512 frames, 128 bytes per frame, 65536 bytes total.
+	/*int physicalmem[512][128];
+	int bytenum = 0;
+
+	for(int i = 0; i < 512; i++)
+	 {
+	 	//	printf("Byte num start = %d\n\n", bytenum);
+	     for(int x = 0; x < 128; x++)
+	     {
+	       physicalmem[i][x] = bytenum;
+	       bytenum++;
+	       if(x == 127)
+	       {
+						bytenum = 0;
+						//printf("Bytenum now = %d", bytenum);
+	       }
+	     }
+	   // printf("Byte num end = %d\n\n", bytenum);
+	 }*/
+
+	 //Write to a File
+	 int framenum = 0;
+	 FILE *file = fopen("./trial.txt", "w");
+
+	 fprintf(file, "Address\t  |\t  Frame\t   |\t Content\n");
+	 fprintf(file, "-------- \t|\t --------\t | --------\n");
+
+	 for(int i = 0; i < space; i++)
+	 {
+	 		if(i % 127 == 0 && i != 0)
+	 		{
+	 			framenum++;
+	 		}
+			if(allocatemem[i] == 49)
+			{
+			fprintf(file, "0x%X  \t| \t   %d    \t|  %d 	\t| process running\n", i, framenum, allocatemem[i]);
+			}
+			else
+			{
+			fprintf(file, "0x%X  \t| \t		%d		\t|  %d	\n", i, framenum, allocatemem[i]);
+			}
+	 }
+
 
 	//printf("The random number generated was: %d and: %d\n", r, datastart);
   //printf("%s\n", allocatemem);
 	//printf("memory allocated: %zu\n ", sizeof(&allocatemem));
-	for(int i = 0; i < 256; i++)
+	/*for(int i = 0; i < 512; i++)
 	{
-		
-			for(int x = 0; x < 2; x++)
+		printf("Row");
+			for(int x = 0; x < 128; x++)
 			{
-				printf("%d \t", pagetable[i][x]);
+				printf("%d ", pagetable[i][x]);
 			}
-		printf("\n");
-	}
+		printf("\n\n");
+	}*/
 	free(allocatemem);
+	fclose(file);
 	return 0;
 }
