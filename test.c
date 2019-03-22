@@ -10,7 +10,7 @@ int main(){
 	srand(time(NULL));
 	int r = rand() % 20480 + 2048;
 	int datastart = rand() % 45055; //65535 -20480
-
+	
 
 	//Allocate a block of memory, this will be 2^16 (Not 2^16-1, can assume full address space)
 	//create array to allocate block of memory
@@ -18,7 +18,7 @@ int main(){
 	char initialise = 48;//48 = 0 in Ascii table
   unsigned char *allocatemem; 
 	allocatemem = malloc(space);
-
+	//initialise the physical memory
 	for(int i = 0; i < space; i++)
 	{
 	allocatemem[i] = initialise;
@@ -32,10 +32,11 @@ int main(){
 
 	//Set where the random num of bytes will go
 	//Random bytes set to 1 (Ascii 49 = 1)
+	int bytestart = datastart;
 	for(int i = 0; i < r; i++)
 	{
-		allocatemem[datastart] = 49;
-		datastart++;
+		allocatemem[bytestart] = 49;
+		bytestart++;
 	}
 
 	//Page table needs 256 pages
@@ -58,25 +59,6 @@ int main(){
 		pagetable[pagenum][1] = j;
 		pagenum++;
 	}
-	//Similar to above but for bytes in frames. 512 frames, 128 bytes per frame, 65536 bytes total.
-	/*int physicalmem[512][128];
-	int bytenum = 0;
-
-	for(int i = 0; i < 512; i++)
-	 {
-	 	//	printf("Byte num start = %d\n\n", bytenum);
-	     for(int x = 0; x < 128; x++)
-	     {
-	       physicalmem[i][x] = bytenum;
-	       bytenum++;
-	       if(x == 127)
-	       {
-						bytenum = 0;
-						//printf("Bytenum now = %d", bytenum);
-	       }
-	     }
-	   // printf("Byte num end = %d\n\n", bytenum);
-	 }*/
 
 	 //Write to a File
 	 int framenum = 0;
@@ -115,30 +97,43 @@ int main(){
 	printf("Please enter the Vitual Memory Address you would like to access (In hexdecimal format)\n");
 	scanf("%X", &address);
 
-	printf("\nThis address in physical memory returns: %c\n", allocatemem[address]);
-	printf("In order to get the data from the address, my program translates the hex value into decimal then checks the physical memory simulation by accessing the char array at the entered element in the array. If the present bit at that address is set to 1, it will just return the element. If the present bit is set to 0 it will access the hard disk simulation and search the for the address there. If the address is present in the hard disk the system will swap it to physical memory and will then access the data and print to the user from physical memory\n");
+	//First find the offset using a bit mask
+	unsigned int offset_mask = 0x00FF;
+	unsigned int offset = address & offset_mask;
+	printf("\nThis address in physical memory returns: %d\n", offset);
+
+	//Next find VPN using 
+	unsigned int vpn = address >> 8;
+	printf("\nThis address in physical memory returns: %d\n", vpn);
+
+	//Use VPN on page table to find Frame
+	int foundFrame;
+	for(int i = 0; i < 255; i++)
+	{
+		if(pagetable[i][0] == vpn)
+		{
+				foundFrame = pagetable[i][1];
+		}
+	}
+	printf("The frame found was: %d\n", foundFrame);
+
+	//Now add the offset to the frame starting byte (Framenum * 256) + offset)
+	int findaddress =  (foundFrame * 256) + offset;
+	printf("The data at the entered address in physical memory is: %d ==  %c\n",findaddress, allocatemem[findaddress]);
 
 	//Looped Hexadecial input from user
+	/*
 	while(address != -1){
 		printf("Please enter the Vitual Memory Address you would like to access (In hexdecimal format)\n");
 		scanf("%X", &address);
 		printf("\nThis address in physical memory returns: %c\n", allocatemem[address]);
-	}
+	}*/
 
 
 	//printf("The address entered was: %d", address);
 	//printf("The random number generated was: %d and: %d\n", r, datastart);
   //printf("%c \n",  allocatemem[5]);
 	//printf("memory allocated: %zu\n ", sizeof(&allocatemem));
-	/*for(int i = 0; i < 512; i++)
-	{
-		printf("Row");
-			for(int x = 0; x < 128; x++)
-			{
-				printf("%d ", pagetable[i][x]);
-			}
-		printf("\n\n");
-	}*/
 	free(allocatemem);
 	fclose(file);
 	fclose(pagefile);
