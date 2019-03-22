@@ -39,18 +39,18 @@ int main(){
 	}
 
 	//Page table needs 256 pages
-	//Implement via 2D array Rows = Pages, columns =  frame.
+	//Implement via 2D array. need 256 rows and 2 columns
+	//Rows = 256, columns 1 = page number, column 2 = frame number
 	int pagetable[256][2];
 	int pagenum = 0;
 
 	int firstframe = datastart / 256;
 	int lastframe = (r + datastart) / 256;
-
 	//initialise the page table, 256 rows
 	for(int i = 0; i < 256; i++)
 	{
 		pagetable[i][0] = i;
-		pagetable[i][1] = 0;
+	  pagetable[i][1] = 0;
 	}
 
 	for(int j = firstframe; j < lastframe; j++)
@@ -109,8 +109,25 @@ int main(){
   {
 			fprintf(pagefile, "		%d		\t	|\t		%d		\n", pagetable[i][0], pagetable[i][1]);
   }
-	 
-	printf("The random number generated was: %d and: %d\n", r, datastart);
+
+	//Get hexadecimal input from the user
+	unsigned int address;
+	printf("Please enter the Vitual Memory Address you would like to access (In hexdecimal format)\n");
+	scanf("%X", &address);
+
+	printf("\nThis address in physical memory returns: %c\n", allocatemem[address]);
+	printf("In order to get the data from the address, my program translates the hex value into decimal then checks the physical memory simulation by accessing the char array at the entered element in the array. If the present bit at that address is set to 1, it will just return the element. If the present bit is set to 0 it will access the hard disk simulation and search the for the address there. If the address is present in the hard disk the system will swap it to physical memory and will then access the data and print to the user from physical memory\n");
+
+	//Looped Hexadecial input from user
+	while(address != -1){
+		printf("Please enter the Vitual Memory Address you would like to access (In hexdecimal format)\n");
+		scanf("%X", &address);
+		printf("\nThis address in physical memory returns: %c\n", allocatemem[address]);
+	}
+
+
+	//printf("The address entered was: %d", address);
+	//printf("The random number generated was: %d and: %d\n", r, datastart);
   //printf("%c \n",  allocatemem[5]);
 	//printf("memory allocated: %zu\n ", sizeof(&allocatemem));
 	/*for(int i = 0; i < 512; i++)
